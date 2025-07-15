@@ -1,0 +1,267 @@
+from sympy.discrete.transforms import I
+import torch
+import pandas as pd
+import os
+import cv2
+import open3d as o3d
+import numpy as np
+import time
+from scipy.spatial.transform import Rotation as R
+from dataclasses import dataclass
+from typing import List, Optional, Tuple
+
+
+
+def get_world_coordinates_of_depth(depth_tensor:torch.Tensor, camera_intrinsics: o3d.camera.PinholeCameraIntrinsic, camera_pose: np.ndarray, rgb_tensor:np.ndarray=None):
+    """
+    Args:
+        depth_tensor: torch.Tensor of shape (W,H)
+        camera_intrinsics: o3d.camera.PinholeCameraIntrinsic
+        camera_pose: torch.Tensor of shape (,7), quaternion in ROS convention, and euler position in the order of [x, y, z]
+    """
+
+    # depth tensor is a numpy array of shape (720, 1280), rgb tensor is a numpy array of shape (720, 1280, 3)
+    depth_tensor = depth_tensor.numpy()
+    rgb_tensor = np.zeros((depth_tensor.shape[0], depth_tensor.shape[1], 3)) if rgb_tensor is None else rgb_tensor
+    rgb_tensor = rgb_tensor.astype(np.uint8)
+
+    # get tensor into o3d format
+    curr_depth_img = o3d.geometry.Image(depth_tensor) # (720, 1280)
+    curr_rgb_img = o3d.geometry.Image(rgb_tensor) # (720, 1280, 3)
+
+    # calculate the local to world transformation matrix
+    quat = camera_pose[[1,2,3,0]].tolist()
+    position = np.array(camera_pose[4:], dtype=np.float64)
+    c2w = R.from_quat(quat).as_matrix()  
+    c2w = np.hstack((c2w, position.reshape(3, 1)))
+    c2w = np.vstack((c2w, np.array([[0, 0, 0, 1]])))
+    
+    rgbd_image = o3d.geometry.RGBDImage.create_from_color_and_depth(
+        curr_rgb_img,
+        curr_depth_img,
+        depth_scale=1.0,
+        depth_trunc=100,
+        convert_rgb_to_intensity=False
+    )
+    temp = o3d.geometry.PointCloud.create_from_rgbd_image(
+        rgbd_image, camera_intrinsics
+    )
+    temp.transform(c2w)    
+
+    return temp
+
+
+
+# each image contains the following fields.
+@dataclass
+class ScanImage:
+    index: int
+    angle: float
+    position: List[float]
+    quat: List[float]
+    num_objects: int
+    centroid_x: List[float]
+    centroid_y: List[float]
+    depths_at_centroids: List[float]
+    image_path: str
+    depth_path: str
+    pose_path: str
+
+def parse_csv_list(value):
+    if pd.isna(value) or value == "":
+        return []
+    return [float(x.strip()) for x in str(value).split(",")]
+
+def load_pose(pose_file: str):
+    pose_tensor = torch.load(pose_file)
+    data = pose_tensor.cpu().numpy()
+    if len(data.shape) == 2:na
+        data = data[0]
+    return data[:3].tolist(), data[3:7].tolist()
+
+def create_data():
+    csv_data = pd.read_csv("tiamat_fsm_task_scripts/data/scan_data/scan_metadata_with_objects.csv")
+    images = []
+    
+    for i in range(13):
+        row = csv_data[csv_data['image_index'] == i].iloc[0]
+        pose_file = f"tiamat_fsm_task_scripts/data/scan_data/pose/pose_{i:03d}.pt"
+        position, quat = load_pose(pose_file)
+        
+        images.append(ScanImage(
+            index=i,
+            angle=row['rotation_degrees'],
+            position=position,
+            quat=quat,
+            num_objects=row['num_objects'],
+            centroid_x=parse_csv_list(row['centroids_x']),
+            centroid_y=parse_csv_list(row['centroids_y']),
+            depths_at_centroids=parse_csv_list(row['depths_at_centroids']),
+            image_path=f"tiamat_fsm_task_scripts/data/bounded_imgs/bounded_imgs_{i:03d}.png",
+            depth_path=f"tiamat_fsm_task_scripts/data/scan_data/depth/depth_{i:03d}.pt",
+            pose_path=pose_file
+        ))
+    
+    return images
+
+
+
+
+
+@dataclass
+class CameraIntrinsics:
+    focal_length: float = 1.88
+    focus_distance: float = 0.5
+    horizontal_aperture: float = 3.896
+    vertical_aperture: float = 2.453
+    clipping_range: Tuple[float, float] = (0.01, 6.0)
+    width: int = 1280
+    height: int = 720
+
+def get_o3d_cam_intrinsic():
+
+    width = 1280
+    height = 720
+    fx = 617.3
+    fy = 551.5
+    ppx = 1280 / 2
+    ppy = 720 / 2
+
+    return o3d.camera.PinholeCameraIntrinsic(width, height, fx, fy, ppx, ppy)
+
+
+
+
+import open3d as o3d
+import numpy as np
+
+def voxel_downsample_points(points, colors=None, voxel_size=0.05):
+    """
+    Downsample points using voxel grid
+    
+    Args:
+        points: numpy array of shape (N, 3) with x, y, z coordinates
+        colors: numpy array of shape (N, 3) with RGB colors (optional)
+        voxel_size: size of voxel grid (default: 0.05 meters)
+    
+    Returns:
+        downsampled_points: numpy array of downsampled points
+        downsampled_colors: numpy array of downsampled colors (if colors provided)
+    """
+    # Create Open3D point cloud
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(points)
+    
+    if colors is not None:
+        pcd.colors = o3d.utility.Vector3dVector(colors)
+    
+    # Perform voxel downsampling
+    downsampled_pcd = pcd.voxel_down_sample(voxel_size=voxel_size)
+    
+    # Convert back to numpy arrays
+    downsampled_points = np.asarray(downsampled_pcd.points)
+    
+    if colors is not None:
+        downsampled_colors = np.asarray(downsampled_pcd.colors)
+        return downsampled_points, downsampled_colors
+    else:
+        return downsampled_points
+
+
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
+
+def visualize_points_3d(points_array, colors_array=None, title="3D Point Cloud Visualization"):
+    """
+    Visualize 3D points using matplotlib
+    
+    Args:
+        points_array: numpy array of shape (N, 3) with x, y, z coordinates
+        colors_array: numpy array of shape (N, 3) with RGB colors (0-1 range)
+        title: title for the plot
+    """
+    fig = plt.figure(figsize=(12, 8))
+    ax = fig.add_subplot(111, projection='3d')
+    
+    # Extract coordinates
+    x = points_array[:, 0]
+    y = points_array[:, 1]
+    z = points_array[:, 2]
+    
+    if colors_array is not None:
+        # Normalize colors to 0-1 range if they're in 0-255
+        if colors_array.max() > 1.0:
+            colors_array = colors_array / 255.0
+        ax.scatter(x, y, z, c=colors_array, s=0.1, alpha=0.7)
+    else:
+        ax.scatter(x, y, z, s=0.1, alpha=0.7)
+    
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    ax.set_title(title)
+    
+    # Set equal aspect ratio
+    max_range = np.array([x.max()-x.min(), y.max()-y.min(), z.max()-z.min()]).max() / 2.0
+    mid_x = (x.max()+x.min()) * 0.5
+    mid_y = (y.max()+y.min()) * 0.5
+    mid_z = (z.max()+z.min()) * 0.5
+    ax.set_xlim(mid_x - max_range, mid_x + max_range)
+    ax.set_ylim(mid_y - max_range, mid_y + max_range)
+    ax.set_zlim(mid_z - max_range, mid_z + max_range)
+    
+    plt.tight_layout()
+    plt.show()
+
+
+
+# vis, all_points, all_colors = dummy_function()
+
+
+
+
+images = create_data()
+
+# print them all
+all_points = []
+all_colors = []
+pcd = o3d.geometry.PointCloud() #pcd probably stands for point cloud
+vis = o3d.visualization.Visualizer()
+vis.create_window()
+
+camera_intrinsics = get_o3d_cam_intrinsic()
+
+for i in range(13):
+    if i == 9: continue
+
+    depth_tensor = torch.load(images[i].depth_path).squeeze(0).squeeze(0)
+    rgb_tensor = cv2.imread(images[i].image_path)
+    camera_pose = np.concatenate((images[i].quat, images[i].position), axis=0)
+
+    world_point_cloud = get_world_coordinates_of_depth(depth_tensor, camera_intrinsics, camera_pose, rgb_tensor=rgb_tensor)
+
+    all_points.append(np.asarray(world_point_cloud.points))
+    all_colors.append(np.asarray(world_point_cloud.colors))
+        
+    pcd.points = o3d.utility.Vector3dVector(np.vstack(all_points))
+    pcd.colors = o3d.utility.Vector3dVector(np.vstack(all_colors))
+
+    if i == 0:
+        vis.add_geometry(pcd) 
+    else:
+        vis.update_geometry(pcd)
+
+# keep it running loop
+while True:
+    vis.poll_events()
+    vis.update_renderer()
+    # vis.capture_screen_image(os.path.join(out_dir, "%05d.jpg" % frame))
+    time.sleep(0.01)
+
+
+
+# sample_points, sample_colors = voxel_downsample_points(np.vstack(all_points), np.vstack(all_colors), voxel_size=0.5)
+# visualize_points_3d(sample_points, sample_colors, title="Voxel Downsampled Point Cloud")
+
+

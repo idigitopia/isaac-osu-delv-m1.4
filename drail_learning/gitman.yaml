@@ -1,0 +1,6 @@
+location:
+sources:
+  - name: rsl_rl
+    repo: https://github.com/leggedrobotics/rsl_rl.git
+    rev: v2.3.0
+    type: git

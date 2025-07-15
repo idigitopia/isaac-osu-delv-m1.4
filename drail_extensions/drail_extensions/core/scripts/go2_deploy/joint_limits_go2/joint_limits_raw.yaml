@@ -1,0 +1,49 @@
+joint_limits:
+  front_right_hip:
+    nominal: {min: 0.01637268, max: 0.01661491}
+    pitch: {min: -0.06355995, max: 0.25035745}
+    all: {min: -0.36560863, max: 0.46402603}
+  front_right_thigh:
+    nominal: {min: 0.79852366, max: 0.79903841}
+    pitch: {min: 0.5344733, max: 1.10266137}
+    all: {min: 0.01142895, max: 1.399472}
+  front_right_calf:
+    nominal: {min: -1.44835401, max: -1.44827497}
+    pitch: {min: -2.34527445, max: -1.0182972}
+    all: {min: -2.57000208, max: -0.83833814}
+  front_left_hip:
+    nominal: {min: -0.02430546, max: -0.02409351}
+    pitch: {min: -0.16115987, max: 0.07615536}
+    all: {min: -0.53499651, max: 0.52259761}
+  front_left_thigh:
+    nominal: {min: 0.79401219, max: 0.79464805}
+    pitch: {min: 0.58730751, max: 1.18014157}
+    all: {min: 0.02983767, max: 1.41082597}
+  front_left_calf:
+    nominal: {min: -1.48154354, max: -1.48141718}
+    pitch: {min: -2.32263756, max: -0.9846971}
+    all: {min: -2.65783334, max: -0.90087843}
+  rear_right_hip:
+    nominal: {min: 0.1374172, max: 0.13771997}
+    pitch: {min: -0.0126988, max: 0.19664004}
+    all: {min: -0.42253542, max: 0.6016323}
+  rear_right_thigh:
+    nominal: {min: 0.7548579, max: 0.75537264}
+    pitch: {min: 0.11569929, max: 1.42874491}
+    all: {min: -0.11419797, max: 1.48445559}
+  rear_right_calf:
+    nominal: {min: -1.46653628, max: -1.46642566}
+    pitch: {min: -2.25993919, max: -1.01240492}
+    all: {min: -2.34326816, max: -0.81149912}
+  rear_left_hip:
+    nominal: {min: -0.10208327, max: -0.10178053}
+    pitch: {min: -0.13484359, max: 0.02190322}
+    all: {min: -0.42977697, max: 0.36970118}
+  rear_left_thigh:
+    nominal: {min: 0.79903293, max: 0.79948705}
+    pitch: {min: 0.22133762, max: 1.3548981}
+    all: {min: -0.1074158, max: 1.57695341}
+  rear_left_calf:
+    nominal: {min: -1.48331273, max: -1.48323381}
+    pitch: {min: -2.30423403, max: -1.04717422}
+    all: {min: -2.45928121, max: -0.83874893}

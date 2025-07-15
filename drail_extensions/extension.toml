@@ -1,0 +1,33 @@
+[package]
+
+# Semantic Versioning is used: https://semver.org/
+version = "1.1.0"
+
+# Description
+category = "isaaclab"
+readme  = "README.md"
+
+title = "Drail Extensions"
+author = "Dynamic Robotics and Artificial intelligence Laboratory (DRAIL), Oregon State University"
+maintainer = "Dynamic Robotics and Artificial intelligence Laboratory (DRAIL), Oregon State University"
+description= "IsaacLab extension repository for RL training of robots in DRAIL"
+repository = "https://github.com/osudrl/IsaacLabDRAIL"
+keywords = ["isaacsim", "isaaclab", "drail", "go2", "digit", "humanoid"]
+
+[dependencies]
+"omni.isaac.lab" = {}
+"omni.isaac.lab_assets" = {}
+"omni.isaac.lab_tasks" = {}
+# NOTE: Add additional dependencies here
+
+[[python.module]]
+name = "drail_extensions"
+
+[isaaclab_settings]
+# TODO: Uncomment and list any apt dependencies here.
+#       If none, leave it commented out.
+# apt_deps = ["example_package"]
+# TODO: Uncomment and provide path to a ros_ws
+#       with rosdeps to be installed. If none,
+#       leave it commented out.
+# ros_ws = "path/from/extension_root/to/ros_ws"

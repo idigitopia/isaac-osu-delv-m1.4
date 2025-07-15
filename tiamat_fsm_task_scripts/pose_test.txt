@@ -1,0 +1,182 @@
+"""
+Quaternion Printer for Robot Pose Files
+
+This script loads pose files and prints the quaternion information
+to help understand the data structure and validate quaternion extraction.
+"""
+
+import torch
+import numpy as np
+import os
+import glob
+
+def analyze_single_pose_file(file_path):
+    """
+    Analyze a single pose file to understand its structure.
+    """
+    try:
+        pose_tensor = torch.load(file_path)
+        pose_np = pose_tensor.cpu().numpy()
+        
+        filename = os.path.basename(file_path)
+        print(f"\n{filename}:")
+        print(f"  Raw tensor shape: {pose_tensor.shape}")
+        print(f"  Raw tensor: {pose_tensor}")
+        print(f"  Numpy shape: {pose_np.shape}")
+        print(f"  Full data: {pose_np}")
+        
+        # Try different quaternion extraction methods
+        if len(pose_np.shape) == 2:  # 2D tensor
+            data = pose_np[0]  # Get first row
+        else:  # 1D tensor
+            data = pose_np
+            
+        print(f"  Flattened data length: {len(data)}")
+        print(f"  All values: {data}")
+        
+        if len(data) >= 7:
+            # Assume first 3 are position, next 4 are quaternion
+            position = data[:3]
+            quaternion = data[3:7]
+            print(f"  Position (first 3): [{position[0]:.6f}, {position[1]:.6f}, {position[2]:.6f}]")
+            print(f"  Quaternion (4-7): [{quaternion[0]:.6f}, {quaternion[1]:.6f}, {quaternion[2]:.6f}, {quaternion[3]:.6f}]")
+            
+            # Check if quaternion is normalized (should be close to 1.0)
+            quat_norm = np.linalg.norm(quaternion)
+            print(f"  Quaternion norm: {quat_norm:.6f} {'✓' if abs(quat_norm - 1.0) < 0.001 else '✗'}")
+            
+        if len(data) >= 4:
+            # Also try last 4 values (original assumption)
+            last_four = data[-4:]
+            print(f"  Last 4 values: [{last_four[0]:.6f}, {last_four[1]:.6f}, {last_four[2]:.6f}, {last_four[3]:.6f}]")
+            
+            # Check if last 4 form a valid quaternion
+            last_four_norm = np.linalg.norm(last_four)
+            print(f"  Last 4 norm: {last_four_norm:.6f} {'✓' if abs(last_four_norm - 1.0) < 0.001 else '✗'}")
+        
+        return data
+        
+    except Exception as e:
+        print(f"Error loading {file_path}: {e}")
+        return None
+
+def print_all_quaternions():
+    """
+    Print quaternions from all pose files.
+    """
+    pose_dir = "tiamat_fsm_task_scripts/data/scan_data/pose"
+    pose_files = glob.glob(os.path.join(pose_dir, "pose_*.pt"))
+    
+    if not pose_files:
+        print(f"No pose files found in {pose_dir}")
+        print("Available files in directory:")
+        if os.path.exists(pose_dir):
+            all_files = os.listdir(pose_dir)
+            for f in all_files:
+                print(f"  {f}")
+        else:
+            print(f"  Directory {pose_dir} does not exist")
+        return
+    
+    print(f"Found {len(pose_files)} pose files")
+    print("=" * 80)
+    
+    # Analyze first file in detail to understand structure
+    print("DETAILED ANALYSIS OF FIRST FILE:")
+    print("=" * 80)
+    first_file_data = analyze_single_pose_file(sorted(pose_files)[0])
+    
+    print("\n" + "=" * 80)
+    print("QUATERNION SUMMARY FOR ALL FILES:")
+    print("=" * 80)
+    
+    all_data = []
+    for file_path in sorted(pose_files):
+        try:
+            pose_tensor = torch.load(file_path)
+            pose_np = pose_tensor.cpu().numpy()
+            
+            # Extract data consistently
+            if len(pose_np.shape) == 2:
+                data = pose_np[0]
+            else:
+                data = pose_np
+            
+            filename = os.path.basename(file_path)
+            file_idx = int(filename.split('_')[1].split('.')[0])  # Extract number from pose_XXX.pt
+            
+            if len(data) >= 7:
+                position = data[:3]
+                quaternion = data[3:7]
+                quat_norm = np.linalg.norm(quaternion)
+                
+                print(f"File {file_idx:2d}: Pos=[{position[0]:7.3f}, {position[1]:7.3f}, {position[2]:7.3f}] "
+                      f"Quat=[{quaternion[0]:7.4f}, {quaternion[1]:7.4f}, {quaternion[2]:7.4f}, {quaternion[3]:7.4f}] "
+                      f"Norm={quat_norm:.4f}")
+                
+                all_data.append(data)
+            else:
+                print(f"File {file_idx:2d}: Insufficient data (length: {len(data)})")
+                
+        except Exception as e:
+            print(f"Error with {os.path.basename(file_path)}: {e}")
+    
+    # Additional analysis
+    if all_data:
+        all_data = np.array(all_data)
+        print(f"\n" + "=" * 80)
+        print("QUATERNION STATISTICS:")
+        print("=" * 80)
+        
+        if all_data.shape[1] >= 7:
+            quaternions = all_data[:, 3:7]
+            
+            print(f"Number of valid quaternions: {len(quaternions)}")
+            print(f"Quaternion component ranges:")
+            print(f"  w: [{quaternions[:, 0].min():.4f}, {quaternions[:, 0].max():.4f}]")
+            print(f"  x: [{quaternions[:, 1].min():.4f}, {quaternions[:, 1].max():.4f}]")
+            print(f"  y: [{quaternions[:, 2].min():.4f}, {quaternions[:, 2].max():.4f}]")
+            print(f"  z: [{quaternions[:, 3].min():.4f}, {quaternions[:, 3].max():.4f}]")
+            
+            # Check normalization
+            norms = np.linalg.norm(quaternions, axis=1)
+            print(f"Quaternion norms range: [{norms.min():.6f}, {norms.max():.6f}]")
+            print(f"All quaternions normalized: {'✓' if np.allclose(norms, 1.0, atol=0.001) else '✗'}")
+            
+            # Convert first and last quaternion to Euler angles for rotation check
+            def quat_to_euler(q):
+                w, x, y, z = q
+                # Roll (x-axis rotation)
+                sinr_cosp = 2 * (w * x + y * z)
+                cosr_cosp = 1 - 2 * (x * x + y * y)
+                roll = np.arctan2(sinr_cosp, cosr_cosp)
+                
+                # Pitch (y-axis rotation)
+                sinp = 2 * (w * y - z * x)
+                if abs(sinp) >= 1:
+                    pitch = np.copysign(np.pi / 2, sinp)
+                else:
+                    pitch = np.arcsin(sinp)
+                
+                # Yaw (z-axis rotation)
+                siny_cosp = 2 * (w * z + x * y)
+                cosy_cosp = 1 - 2 * (y * y + z * z)
+                yaw = np.arctan2(siny_cosp, cosy_cosp)
+                
+                return np.degrees([roll, pitch, yaw])
+            
+            first_euler = quat_to_euler(quaternions[0])
+            last_euler = quat_to_euler(quaternions[-1])
+            
+            print(f"\nFirst quaternion as Euler (deg): Roll={first_euler[0]:.1f}, Pitch={first_euler[1]:.1f}, Yaw={first_euler[2]:.1f}")
+            print(f"Last quaternion as Euler (deg):  Roll={last_euler[0]:.1f}, Pitch={last_euler[1]:.1f}, Yaw={last_euler[2]:.1f}")
+            print(f"Total yaw rotation: {last_euler[2] - first_euler[2]:.1f} degrees")
+
+def main():
+    """Main function to print quaternions."""
+    print("ROBOT POSE QUATERNION ANALYSIS")
+    print("=" * 80)
+    print_all_quaternions()
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,6 @@
+location:
+sources:
+  - repo: https://github.com/isaac-sim/IsaacLab.git
+    name: IsaacLab
+    rev: b1133e0591c2ef3a788c1ca148bb25a3f42562a9
+    type: git

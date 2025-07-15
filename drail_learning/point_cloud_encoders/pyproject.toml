@@ -1,0 +1,79 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel", "torch"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "point_cloud_encoders"
+version = "0.1.0"
+keywords = ["point-cloud"]
+maintainers = [
+  { name="Your Name", email="your.email@example.com" }
+]
+authors = [
+  { name="Your Name", email="your.email@example.com" }
+]
+description = "Point cloud encoders with deep learning architectures"
+readme = { file = "README.md", content-type = "text/markdown" }
+license = { text = "BSD-3-Clause" }
+
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "einops==0.8.0",
+    "pykeops==2.2.3",
+    "torch",
+    "numpy",
+    # Add all other requirements from your requirements.txt here
+]
+
+[project.urls]
+Homepage = "https://github.com/pvskand/point-cloud-encoders"
+Issues = "https://github.com/pvskand/point-cloud-encoders/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["point_cloud_encoders*"]
+
+# Add pointnet2_ops_lib as a package data
+[tool.setuptools.package-data]
+point_cloud_encoders = ["pointnet2_ops_lib/*"]
+
+[tool.isort]
+py_version = 37
+line_length = 120
+group_by_package = true
+skip_glob = [".vscode/*"]
+
+sections = [
+    "FUTURE",
+    "STDLIB",
+    "THIRDPARTY",
+    "FIRSTPARTY",
+    "LOCALFOLDER",
+]
+
+extra_standard_library = [
+    "numpy",
+    "torch",
+    "tensordict",
+    "warp",
+    "typing_extensions",
+    "git",
+]
+
+known_first_party = "point_cloud_encoders"
+
+[tool.pyright]
+include = ["point_cloud_encoders"]
+typeCheckingMode = "basic"
+pythonVersion = "3.8"
+pythonPlatform = "Linux"
+enableTypeIgnoreComments = true
+reportMissingImports = "none"
+reportMissingModuleSource = "none"
+reportGeneralTypeIssues = "none"
+reportOptionalMemberAccess = "warning"
+reportPrivateUsage = "warning"

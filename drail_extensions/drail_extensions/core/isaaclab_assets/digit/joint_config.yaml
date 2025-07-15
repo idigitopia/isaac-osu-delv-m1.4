@@ -1,0 +1,144 @@
+left_arm_elbow_joint:
+  armature: 0.173824
+  damping: 9.0
+  position: 0.34478028
+  stiffness: 80.0
+  output_torque_limit: 126.682458
+left_arm_shoulder_pitch_joint:
+  armature: 0.173824
+  damping: 9.0
+  position: 0.894852532
+  stiffness: 80.0
+  output_torque_limit: 126.682458
+left_arm_shoulder_roll_joint:
+  armature: 0.173824
+  damping: 9.0
+  position: -0.105542715
+  stiffness: 80.0
+  output_torque_limit: 126.682458
+left_arm_shoulder_yaw_joint:
+  armature: 0.0679
+  damping: 7.0
+  position: -0.00863756398
+  stiffness: 50.0
+  output_torque_limit: 79.176536
+left_leg_heel_spring_joint:
+  position: 0.000455857916
+  stiffness: 4375
+left_leg_hip_pitch_joint:
+  armature: 0.120473
+  damping: 10.0
+  position: 0.192369587
+  stiffness: 110.0
+  output_torque_limit: 216.927898
+left_leg_hip_roll_joint:
+  armature: 0.173824
+  damping: 8.0
+  position: 0.333020155
+  stiffness: 80.0
+  output_torque_limit: 126.682458
+left_leg_hip_yaw_joint:
+  armature: 0.0679
+  damping: 8.0
+  position: -0.026617873
+  stiffness: 80.0
+  output_torque_limit: 79.176536
+left_leg_knee_joint:
+  armature: 0.120473
+  damping: 12.0
+  position: 0.228971047
+  stiffness: 140.0
+  output_torque_limit: 231.31695
+left_leg_shin_joint:
+  position: 0.00148527831
+  stiffness: 6000
+left_leg_tarsus_joint:
+  position: -0.231455693
+left_leg_toe_a_joint:
+  armature: 0.036089
+  damping: 6.0
+  position: -0.0129734322
+  stiffness: 40.0
+  output_torque_limit: 41.975942
+left_leg_toe_b_joint:
+  armature: 0.036089
+  damping: 6.0
+  position: -0.0203852305
+  stiffness: 40.0
+  output_torque_limit: 41.975942
+left_leg_toe_pitch_joint:
+  position: -0.00352778547
+left_leg_toe_roll_joint:
+  position: -0.0554992074
+right_arm_elbow_joint:
+  armature: 0.173824
+  damping: 9.0
+  position: -0.344723293
+  stiffness: 80.0
+  output_torque_limit: 126.682458
+right_arm_shoulder_pitch_joint:
+  armature: 0.173824
+  damping: 9.0
+  position: -0.894890429
+  stiffness: 80.0
+  output_torque_limit: 126.682458
+right_arm_shoulder_roll_joint:
+  armature: 0.173824
+  damping: 9.0
+  position: 0.105444698
+  stiffness: 80.0
+  output_torque_limit: 126.682458
+right_arm_shoulder_yaw_joint:
+  armature: 0.0679
+  damping: 7.0
+  position: 0.00885979401
+  stiffness: 50.0
+  output_torque_limit: 79.176536
+right_leg_heel_spring_joint:
+  position: -0.000453425792
+  stiffness: 4375
+right_leg_hip_pitch_joint:
+  armature: 0.120473
+  damping: 10.0
+  position: -0.19238219
+  stiffness: 110.0
+  output_torque_limit: 216.927898
+right_leg_hip_roll_joint:
+  armature: 0.173824
+  damping: 8.0
+  position: -0.33302007
+  stiffness: 80.0
+  output_torque_limit: 126.682458
+right_leg_hip_yaw_joint:
+  armature: 0.0679
+  damping: 8.0
+  position: 0.026619536
+  stiffness: 80.0
+  output_torque_limit: 79.176536
+right_leg_knee_joint:
+  armature: 0.120473
+  damping: 12.0
+  position: -0.228971188
+  stiffness: 140.0
+  output_torque_limit: 231.31695
+right_leg_shin_joint:
+  position: -0.00148636971
+  stiffness: 6000
+right_leg_tarsus_joint:
+  position: 0.231454977
+right_leg_toe_a_joint:
+  armature: 0.036089
+  damping: 6.0
+  position: 0.014129994
+  stiffness: 40.0
+  output_torque_limit: 41.975942
+right_leg_toe_b_joint:
+  armature: 0.036089
+  damping: 6.0
+  position: 0.0193767895
+  stiffness: 40.0
+  output_torque_limit: 41.975942
+right_leg_toe_pitch_joint:
+  position: 0.0023687421
+right_leg_toe_roll_joint:
+  position: 0.0555559678
