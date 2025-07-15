@@ -6,6 +6,11 @@ This Checkpoint implements a proof of concept for Map then Navigate system for D
 - Task description will come from language input.
 - The goal is to reach an object as specified by the task.
 
+## Demo Video
+
+https://drive.google.com/file/d/17_dWeyZcf70ps6EvN03f7MBk2hR7cUZX/view
+
+
 **Method Description:**
 
 - Go2 does an initial 360 degree scan of its environment, capturing RGBD images.
